@@ -11,41 +11,52 @@ const AIService = {
   // ─── MAIN ENTRY POINT ───
 
   async generateSuggestions(qb, currentMood) {
-    if (!qb.settings.aiEnabled) return null;
+    console.log('[AIService] generateSuggestions called. aiEnabled:', qb.settings.aiEnabled, 'provider:', qb.settings.aiProvider);
+    if (!qb.settings.aiEnabled) {
+      console.log('[AIService] AI not enabled, skipping');
+      throw new Error('AI is not enabled in settings');
+    }
 
     const cached = this.getCached();
-    if (cached) return cached;
+    if (cached) {
+      console.log('[AIService] Returning cached suggestions');
+      return cached;
+    }
 
-    if (this.isRateLimited()) return null;
+    if (this.isRateLimited()) {
+      console.log('[AIService] Rate limited, skipping');
+      throw new Error('Rate limited — too many requests. Try again in a minute.');
+    }
 
     const provider = qb.settings.aiProvider || 'server';
+    console.log('[AIService] Using provider:', provider);
 
-    try {
-      let result;
-      if (provider === 'server') {
-        result = await this.callServerProxy(qb, currentMood);
-      } else if (provider === 'gemini') {
-        const apiKey = qb.settings.aiApiKey;
-        if (!apiKey) return null;
-        result = await this.callGemini(qb, currentMood, apiKey);
-      } else if (provider === 'openai') {
-        const apiKey = qb.settings.aiApiKey;
-        if (!apiKey) return null;
-        result = await this.callOpenAI(qb, currentMood, apiKey);
-      } else if (provider === 'chrome') {
-        result = await this.callChromeAI(qb, currentMood);
-      }
-
-      if (result && result.length > 0) {
-        this.setCache(result);
-        this.recordRequest();
-        this.trackHistory(result);
-      }
-      return result;
-    } catch (err) {
-      console.error('AI Service error:', err);
-      return null;
+    let result;
+    if (provider === 'server') {
+      result = await this.callServerProxy(qb, currentMood);
+    } else if (provider === 'gemini') {
+      const apiKey = qb.settings.aiApiKey;
+      console.log('[AIService] Gemini API key present:', !!apiKey, 'length:', apiKey?.length);
+      if (!apiKey) throw new Error('No Gemini API key configured');
+      result = await this.callGemini(qb, currentMood, apiKey);
+    } else if (provider === 'openai') {
+      const apiKey = qb.settings.aiApiKey;
+      if (!apiKey) throw new Error('No OpenAI API key configured');
+      result = await this.callOpenAI(qb, currentMood, apiKey);
+    } else if (provider === 'chrome') {
+      result = await this.callChromeAI(qb, currentMood);
     }
+
+    console.log('[AIService] Provider returned result:', result);
+
+    if (!result || result.length === 0) {
+      throw new Error('AI returned empty suggestions');
+    }
+
+    this.setCache(result);
+    this.recordRequest();
+    this.trackHistory(result);
+    return result;
   },
 
   // ─── SERVER PROXY (SHARED KEY) ───
@@ -223,8 +234,9 @@ Return ONLY a valid JSON array. No markdown, no explanation.`;
 
   async callGemini(qb, currentMood, apiKey) {
     const prompt = this.buildPrompt(qb, currentMood);
+    console.log('[AIService] Calling Gemini API...');
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -232,8 +244,7 @@ Return ONLY a valid JSON array. No markdown, no explanation.`;
           contents: [{ parts: [{ text: prompt }] }],
           generationConfig: {
             temperature: 0.9,
-            maxOutputTokens: 4096,
-            responseMimeType: 'application/json'
+            maxOutputTokens: 4096
           }
         })
       }
@@ -241,10 +252,12 @@ Return ONLY a valid JSON array. No markdown, no explanation.`;
 
     if (!response.ok) {
       const err = await response.text();
+      console.error('[AIService] Gemini API error:', response.status, err);
       throw new Error(`Gemini API error ${response.status}: ${err}`);
     }
 
     const data = await response.json();
+    console.log('[AIService] Gemini response:', data);
     const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '[]';
     return this.parseResponse(text);
   },
@@ -305,6 +318,7 @@ Return ONLY a valid JSON array. No markdown, no explanation.`;
   // ─── RESPONSE PARSING ───
 
   parseResponse(text) {
+    console.log('[AIService] Parsing response, text length:', text?.length);
     try {
       const jsonMatch = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
       const cleanText = jsonMatch ? jsonMatch[1] : text;
@@ -314,12 +328,14 @@ Return ONLY a valid JSON array. No markdown, no explanation.`;
         ? parsed
         : parsed.suggestions || parsed.quests || parsed.data || [];
 
+      console.log('[AIService] Parsed suggestions count:', suggestions.length);
+
       const validReasons = [
         'streak', 'overdue', 'time', 'balance', 'progression',
         'recovery', 'mood', 'habit', 'skill', 'creative', 'challenge', 'wellness'
       ];
 
-      return suggestions
+      const valid = suggestions
         .filter(s => s.title && s.category && s.difficulty && s.description)
         .map(s => ({
           title: String(s.title).trim(),
@@ -335,9 +351,14 @@ Return ONLY a valid JSON array. No markdown, no explanation.`;
             : 'skill',
           isPriority: s.isPriority || false
         }));
+
+      if (valid.length === 0) {
+        throw new Error('AI response contained no valid suggestions');
+      }
+      return valid;
     } catch (e) {
-      console.error('Failed to parse AI response:', e);
-      return null;
+      console.error('[AIService] Failed to parse AI response:', e, 'Raw text:', text?.substring(0, 500));
+      throw new Error(`Failed to parse AI response: ${e.message}`);
     }
   },
 
