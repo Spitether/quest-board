@@ -115,3 +115,4 @@ If you prefer OpenAI over Gemini:
 1. Add `OPENAI_API_KEY` as env var in Vercel
 2. Modify `api/gemini.js` to call `/api/openai` instead
 3. Or switch provider to "OpenAI" in Settings and enter your key
+

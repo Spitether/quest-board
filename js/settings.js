@@ -82,7 +82,7 @@ const Settings = {
   },
 
   renderAISettings(qb) {
-    const container = document.getElementById('aiSettingsPanel');
+    const container = document.getElementById('aiPanel');
     if (!container) return;
 
     const aiEnabled = qb.settings.aiEnabled || false;
