@@ -30,7 +30,7 @@ class QuestBoard {
       decorations: [],
       companion: 'cat',
       aiEnabled: false,
-      aiProvider: 'server',
+      aiProvider: 'pollinations',
       aiApiKey: ''
     };
     this.init();

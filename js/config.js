@@ -125,7 +125,8 @@ const PARTY_BONUS_XP = 10;
 
 // ===== AI PROVIDER CONFIG =====
 const AI_PROVIDERS = [
-  { id: 'server', name: 'Server (Shared)', icon: '🌐', desc: 'Uses site owner\'s key — no setup needed!' },
+  { id: 'pollinations', name: 'Pollinations AI', icon: '🌸', desc: 'Free, no API key needed!' },
+  { id: 'server', name: 'Server (Shared)', icon: '🌐', desc: 'Uses site owner\'s key — works when deployed' },
   { id: 'gemini', name: 'Google Gemini', icon: '🔮', desc: 'Free tier: 15 req/min, 1500/day' },
   { id: 'openai', name: 'OpenAI', icon: '🤖', desc: 'Pay-per-use, most capable' },
   { id: 'chrome', name: 'Chrome Built-in AI', icon: '💻', desc: 'Runs locally in Chrome (experimental)' }

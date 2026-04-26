@@ -28,11 +28,13 @@ const AIService = {
       throw new Error('Rate limited — too many requests. Try again in a minute.');
     }
 
-    const provider = qb.settings.aiProvider || 'server';
+    const provider = qb.settings.aiProvider || 'pollinations';
     console.log('[AIService] Using provider:', provider);
 
     let result;
-    if (provider === 'server') {
+    if (provider === 'pollinations') {
+      result = await this.callPollinations(qb, currentMood);
+    } else if (provider === 'server') {
       result = await this.callServerProxy(qb, currentMood);
     } else if (provider === 'gemini') {
       const apiKey = qb.settings.aiApiKey;
@@ -297,6 +299,41 @@ Return ONLY a valid JSON array. No markdown, no explanation.`;
     return this.parseResponse(text);
   },
 
+  // ─── PROVIDER: POLLINATIONS AI (FREE, NO KEY) ───
+
+  async callPollinations(qb, currentMood) {
+    const prompt = this.buildPrompt(qb, currentMood);
+    console.log('[AIService] Calling Pollinations AI...');
+    const response = await fetch('https://text.pollinations.ai/openai', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'openai',
+        messages: [
+          {
+            role: 'system',
+            content: 'You are a personal growth coach. Return only valid JSON arrays of quest suggestions. No markdown, no explanation.'
+          },
+          { role: 'user', content: prompt }
+        ],
+        temperature: 0.9,
+        max_tokens: 4096,
+        response_format: { type: 'json_object' }
+      })
+    });
+
+    if (!response.ok) {
+      const err = await response.text();
+      console.error('[AIService] Pollinations API error:', response.status, err);
+      throw new Error(`Pollinations API error ${response.status}: ${err}`);
+    }
+
+    const data = await response.json();
+    console.log('[AIService] Pollinations response:', data);
+    const text = data.choices?.[0]?.message?.content || '[]';
+    return this.parseResponse(text);
+  },
+
   // ─── PROVIDER: CHROME BUILT-IN AI ───
 
   async callChromeAI(qb, currentMood) {
@@ -442,9 +479,9 @@ Return ONLY a valid JSON array. No markdown, no explanation.`;
 
   isAvailable(qb) {
     if (!qb.settings.aiEnabled) return false;
-    const provider = qb.settings.aiProvider || 'server';
-    if (provider === 'server') {
-      // Server proxy is always available if enabled (server has the key)
+    const provider = qb.settings.aiProvider || 'pollinations';
+    if (provider === 'pollinations' || provider === 'server') {
+      // These providers need no user API key
       return true;
     }
     if (provider === 'chrome') {
