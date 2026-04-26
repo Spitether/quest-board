@@ -571,27 +571,42 @@ const Suggestions = {
       });
     }
 
-    // 9. Mood-based (varied by mood)
+    // 9. Mood-based (varied by mood) — Expanded with more options
     const moodSuggestions = {
       focused: [
         { title: 'Deep Work Session', category: 'main', diff: 'medium', desc: '🎯 Your focused mood is perfect for a meaningful main quest. Block distractions and dive deep.' },
-        { title: 'Single-Task Sprint', category: 'side', diff: 'medium', desc: '🎯 Pick ONE thing and give it your undivided attention for 45 minutes.' }
+        { title: 'Single-Task Sprint', category: 'side', diff: 'medium', desc: '🎯 Pick ONE thing and give it your undivided attention for 45 minutes.' },
+        { title: 'Focus Block Marathon', category: 'main', diff: 'hard', desc: '🎯 Two hours of uninterrupted deep work on your highest-impact project.' },
+        { title: 'Distraction-Free Coding', category: 'side', diff: 'medium', desc: '🎯 Close all tabs and notifications. Pure focus on one technical problem.' },
+        { title: 'Strategic Planning Session', category: 'weekly', diff: 'medium', desc: '🎯 Map out your next week with crystal clarity. No multitasking allowed.' }
       ],
       relaxed: [
         { title: 'Gentle Progress', category: 'side', diff: 'easy', desc: '😌 Take it easy with a relaxed side quest. No pressure, just enjoy the process.' },
-        { title: 'Mindful Maintenance', category: 'daily', diff: 'easy', desc: '😌 A low-stakes task that keeps things running smoothly without stress.' }
+        { title: 'Mindful Maintenance', category: 'daily', diff: 'easy', desc: '😌 A low-stakes task that keeps things running smoothly without stress.' },
+        { title: 'Tea and Tidy', category: 'daily', diff: 'easy', desc: '😌 Slowly organize one drawer or shelf while sipping something warm.' },
+        { title: 'Nature Walk', category: 'side', diff: 'easy', desc: '😌 Wander outside with no agenda. Let your mind wander too.' },
+        { title: 'Gratitude Journaling', category: 'daily', diff: 'easy', desc: '😌 Write three things you appreciate. Keep it gentle and unhurried.' }
       ],
       challenged: [
         { title: 'Skill Test', category: 'weekly', diff: 'hard', desc: '🏋️ You\'re feeling challenged — channel that energy into a tough weekly quest.' },
-        { title: 'Breakthrough Attempt', category: 'main', diff: 'hard', desc: '🏋️ Push past your current limit. Try something you think might be too hard.' }
+        { title: 'Breakthrough Attempt', category: 'main', diff: 'hard', desc: '🏋️ Push past your current limit. Try something you think might be too hard.' },
+        { title: 'The Impossible Quest', category: 'main', diff: 'hard', desc: '🏋️ Pick the one quest you have been avoiding. You are stronger than you think.' },
+        { title: 'Endurance Challenge', category: 'weekly', diff: 'hard', desc: '🏋️ Set a stamina goal — 60 minutes of continuous effort on one skill.' },
+        { title: 'Compete With Yourself', category: 'side', diff: 'hard', desc: '🏋️ Beat your personal best from last week. Track it and celebrate the win.' }
       ],
       creative: [
         { title: 'Creative Exploration', category: 'side', diff: 'easy', desc: '🎨 Explore a new creative idea with no rules. Just play and see what emerges!' },
-        { title: 'Experiment Day', category: 'side', diff: 'medium', desc: '🎨 Try a completely new technique or approach in your creative work.' }
+        { title: 'Experiment Day', category: 'side', diff: 'medium', desc: '🎨 Try a completely new technique or approach in your creative work.' },
+        { title: 'Mashup Madness', category: 'side', diff: 'easy', desc: '🎨 Combine two unrelated hobbies into one wild, no-judgment experiment.' },
+        { title: 'Blind Creation', category: 'side', diff: 'easy', desc: '🎨 Create something without planning. Let intuition guide every step.' },
+        { title: 'Inspiration Safari', category: 'side', diff: 'easy', desc: '🎨 Spend 30 minutes collecting images, sounds, or ideas that spark joy.' }
       ],
       social: [
         { title: 'Connect with Others', category: 'side', diff: 'easy', desc: '👥 Reach out to someone. Collaboration makes quests more fun and effective!' },
-        { title: 'Community Contribution', category: 'weekly', diff: 'medium', desc: '👥 Give back to a community you care about. Share knowledge or help out.' }
+        { title: 'Community Contribution', category: 'weekly', diff: 'medium', desc: '👥 Give back to a community you care about. Share knowledge or help out.' },
+        { title: 'Skill Swap', category: 'side', diff: 'easy', desc: '👥 Teach a friend something you know, then learn something from them.' },
+        { title: 'Surprise Message', category: 'daily', diff: 'easy', desc: '👥 Send an unexpected kind message to someone who would not expect it.' },
+        { title: 'Group Challenge', category: 'weekly', diff: 'medium', desc: '👥 Organize a small group activity around a shared interest or goal.' }
       ]
     };
     const msOptions = moodSuggestions[this.currentMood] || moodSuggestions.focused;
@@ -644,6 +659,23 @@ const Suggestions = {
       }
     }
     return this.generateLocalSuggestions(qb);
+  },
+
+  // ─── CUSTOM AI PROMPT SUGGESTIONS ───
+
+  async generateCustomAISuggestions(qb, userPrompt) {
+    const aiEnabled = qb.settings && qb.settings.aiEnabled;
+    const aiAvailable = AIService && typeof AIService.isAvailable === 'function' && AIService.isAvailable(qb);
+
+    if (!aiEnabled || !aiAvailable) {
+      throw new Error('AI is not enabled or available');
+    }
+
+    const aiSuggestions = await AIService.generateCustomSuggestions(qb, this.currentMood, userPrompt);
+    if (aiSuggestions && aiSuggestions.length > 0) {
+      aiSuggestions.forEach(s => { s._aiGenerated = true; s._customPrompt = true; });
+    }
+    return aiSuggestions;
   },
 
   // ─── RENDER METHODS ───
@@ -703,11 +735,14 @@ const Suggestions = {
     const container = document.getElementById('suggestionsListPanel');
     if (!container) return;
 
-    const render = (suggestions, isAI, aiErrorMsg) => {
+    const aiEnabled = qb.settings && qb.settings.aiEnabled;
+    const aiAvailable = AIService && typeof AIService.isAvailable === 'function' && AIService.isAvailable(qb);
+
+    const render = (suggestions, isAI, aiErrorMsg, isCustom) => {
       // Handle error object
       if (suggestions && suggestions._aiError) {
         const fallback = suggestions._fallback || this.generateLocalSuggestions(qb);
-        render(fallback, false, suggestions._errorMessage);
+        render(fallback, false, suggestions._errorMessage, false);
         return;
       }
 
@@ -718,12 +753,23 @@ const Suggestions = {
 
       let html = '';
 
+      // Custom prompt input (only show if AI is available)
+      if (aiEnabled && aiAvailable) {
+        html += `<div class="custom-prompt-box">
+          <div class="custom-prompt-label">💬 Want something specific?</div>
+          <textarea id="customPromptInput" class="custom-prompt-textarea" placeholder="e.g. 'I want coding quests that help me learn React' or 'Suggest fitness quests I can do in 20 minutes'..."></textarea>
+          <button id="customPromptBtn" class="custom-prompt-btn">✨ Ask AI</button>
+        </div>`;
+      }
+
       // Show AI status banner
-      if (isAI) {
+      if (isCustom) {
+        html += `<div class="ai-status-banner ai-custom">✨ Custom AI-generated suggestions</div>`;
+      } else if (isAI) {
         html += `<div class="ai-status-banner ai-success">🤖 AI-generated suggestions based on your quest history</div>`;
       } else if (aiErrorMsg) {
         html += `<div class="ai-status-banner ai-error">⚠️ AI unavailable: ${esc(aiErrorMsg)}. Using local suggestions.</div>`;
-      } else if (qb.settings && qb.settings.aiEnabled) {
+      } else if (aiEnabled) {
         html += `<div class="ai-status-banner ai-local">📋 Using local suggestions (AI fallback)</div>`;
       }
 
@@ -737,13 +783,14 @@ const Suggestions = {
         };
         const icon = icons[s.reason] || '💡';
         const aiBadge = s._aiGenerated ? '<span class="ai-badge">🤖 AI</span>' : '';
+        const customBadge = s._customPrompt ? '<span class="ai-badge custom">✨ Custom</span>' : '';
         return `<div class="suggestion-card-panel ${s.reason} ${s.isPriority ? 'priority' : ''}">
           <div class="suggestion-card-header">
             <div class="suggestion-card-icon">${icon}</div>
             <div class="suggestion-card-meta">
               <span class="suggestion-badge">${s.category}</span>
               <span class="suggestion-badge">${s.difficulty}</span>
-              ${aiBadge}
+              ${aiBadge}${customBadge}
             </div>
           </div>
           <div class="suggestion-card-body">
@@ -759,6 +806,24 @@ const Suggestions = {
 
       container.innerHTML = html;
 
+      // Wire up custom prompt button
+      const customBtn = document.getElementById('customPromptBtn');
+      const customInput = document.getElementById('customPromptInput');
+      if (customBtn && customInput) {
+        customBtn.addEventListener('click', async () => {
+          const prompt = customInput.value.trim();
+          if (!prompt) return;
+          customBtn.disabled = true;
+          customBtn.textContent = '✨ Generating...';
+          try {
+            const customSugs = await this.generateCustomAISuggestions(qb, prompt);
+            render(customSugs, true, null, true);
+          } catch (err) {
+            render(this.generateLocalSuggestions(qb), false, err.message, false);
+          }
+        });
+      }
+
       container.querySelectorAll('.suggestion-card-add').forEach(btn => {
         btn.addEventListener('click', e => {
           e.stopPropagation();
@@ -771,9 +836,9 @@ const Suggestions = {
     const result = this.generateAISuggestions(qb);
     if (result && typeof result.then === 'function') {
       container.innerHTML = '<div class="suggestions-empty">🤖 Consulting the AI oracle...</div>';
-      result.then(sugs => render(sugs, true)).catch(err => render(this.generateLocalSuggestions(qb), false, err.message));
+      result.then(sugs => render(sugs, true, null, false)).catch(err => render(this.generateLocalSuggestions(qb), false, err.message, false));
     } else {
-      render(result, false);
+      render(result, false, null, false);
     }
   },
 

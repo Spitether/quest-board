@@ -58,29 +58,48 @@ const COMPANIONS = [
 
 // ===== SMART SUGGESTIONS =====
 const MOODS = [
-  { id: 'focused', icon: '⚔️', name: 'Focused', desc: 'High-intensity tasks' },
-  { id: 'relaxed', icon: '🧘', name: 'Relaxed', desc: 'Easy-going tasks' },
-  { id: 'energetic', icon: '🔥', name: 'Energetic', desc: 'Batch tasks' }
+  { id: 'focused', icon: '🎯', name: 'Focused', desc: 'Deep work, high-concentration tasks' },
+  { id: 'relaxed', icon: '😌', name: 'Relaxed', desc: 'Low-pressure, gentle progress' },
+  { id: 'challenged', icon: '🏋️', name: 'Challenged', desc: 'Push limits, ambitious tasks' },
+  { id: 'creative', icon: '🎨', name: 'Creative', desc: 'Exploratory, playful, novel ideas' },
+  { id: 'social', icon: '👥', name: 'Social', desc: 'Connect, collaborate, engage others' }
 ];
 
 const SUGGESTIONS = {
   focused: [
-    { title: 'Deep Work Session', category: 'main', difficulty: 'hard', description: '90 minutes of uninterrupted focus' },
-    { title: 'Review & Plan', category: 'weekly', difficulty: 'medium', description: 'Strategic planning for the week' },
-    { title: 'Learn Something New', category: 'side', difficulty: 'hard', description: 'Study a new skill for 1 hour' },
-    { title: 'Complete Priority Task', category: 'main', difficulty: 'hard', description: 'Tackle your most important task' }
+    { title: 'Deep Work Session', category: 'main', difficulty: 'hard', description: '90 minutes of uninterrupted focus on your most important project' },
+    { title: 'Single-Task Sprint', category: 'side', difficulty: 'medium', description: 'Pick ONE thing and give it your undivided attention for 45 minutes' },
+    { title: 'Review & Plan', category: 'weekly', difficulty: 'medium', description: 'Strategic planning for the week ahead with zero distractions' },
+    { title: 'Complete Priority Task', category: 'main', difficulty: 'hard', description: 'Tackle your most important task while your focus is sharp' },
+    { title: 'Refine Current Project', category: 'side', difficulty: 'medium', description: 'Polish and improve something you have been working on' }
   ],
   relaxed: [
-    { title: 'Light Reading', category: 'daily', difficulty: 'easy', description: 'Read for 15 minutes' },
-    { title: 'Tidy Up Space', category: 'daily', difficulty: 'easy', description: 'Organize one small area' },
-    { title: 'Take a Walk', category: 'side', difficulty: 'easy', description: '15-minute mindful walk' },
-    { title: 'Journal Entry', category: 'daily', difficulty: 'easy', description: 'Write 3 things you are grateful for' }
+    { title: 'Light Reading', category: 'daily', difficulty: 'easy', description: 'Read something enjoyable for 15 minutes with no pressure' },
+    { title: 'Tidy Up Space', category: 'daily', difficulty: 'easy', description: 'Organize one small area at a calm, unhurried pace' },
+    { title: 'Take a Walk', category: 'side', difficulty: 'easy', description: '15-minute mindful walk with no destination in mind' },
+    { title: 'Journal Entry', category: 'daily', difficulty: 'easy', description: 'Write 3 things you are grateful for today' },
+    { title: 'Gentle Maintenance', category: 'daily', difficulty: 'easy', description: 'A low-stakes task that keeps things running smoothly' }
   ],
-  energetic: [
-    { title: 'Power Hour', category: 'main', difficulty: 'medium', description: 'Complete as many small tasks as possible' },
-    { title: 'Workout Session', category: 'daily', difficulty: 'medium', description: '30 minutes of exercise' },
-    { title: 'Batch Process Emails', category: 'side', difficulty: 'medium', description: 'Clear your inbox in one go' },
-    { title: 'Social Connection', category: 'weekly', difficulty: 'easy', description: 'Reach out to a friend or family member' }
+  challenged: [
+    { title: 'Tackle Hardest Pending Quest', category: 'main', difficulty: 'hard', description: 'Face the quest you have been avoiding — you are ready for it' },
+    { title: 'Skill Test', category: 'weekly', difficulty: 'hard', description: 'Channel your ambitious energy into a tough weekly challenge' },
+    { title: 'Learn Something Completely New', category: 'main', difficulty: 'hard', description: 'Dive into an unfamiliar skill and embrace the struggle' },
+    { title: 'Double Your Output Goal', category: 'weekly', difficulty: 'hard', description: 'Push past your usual limit and see what you are capable of' },
+    { title: 'Breakthrough Attempt', category: 'main', difficulty: 'hard', description: 'Try something you think might be too hard — prove yourself wrong' }
+  ],
+  creative: [
+    { title: 'Creative Exploration', category: 'side', difficulty: 'easy', description: 'Explore a new creative idea with no rules. Just play and see what emerges' },
+    { title: 'Combine Two Interests', category: 'side', difficulty: 'medium', description: 'Merge two of your hobbies into one unique quest' },
+    { title: 'Experiment Day', category: 'side', difficulty: 'medium', description: 'Try a completely new technique or approach in your creative work' },
+    { title: 'No-Rules Creation', category: 'side', difficulty: 'easy', description: 'Create something with zero expectations — process over product' },
+    { title: 'Saved Idea Exploration', category: 'side', difficulty: 'medium', description: 'Revisit an idea you have been saving for the right moment' }
+  ],
+  social: [
+    { title: 'Teach Someone a Skill', category: 'side', difficulty: 'easy', description: 'Share knowledge you have with someone who wants to learn' },
+    { title: 'Reach Out to a Friend', category: 'daily', difficulty: 'easy', description: 'Send a message or call someone you have not spoken to recently' },
+    { title: 'Community Contribution', category: 'weekly', difficulty: 'medium', description: 'Give back to a community you care about — share, help, or participate' },
+    { title: 'Collaborative Quest', category: 'side', difficulty: 'medium', description: 'Team up with someone on a shared goal or project' },
+    { title: 'Strengthen a Relationship', category: 'side', difficulty: 'easy', description: 'Do something thoughtful for someone important to you' }
   ]
 };
 

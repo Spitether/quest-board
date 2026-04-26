@@ -8,6 +8,81 @@ const AIService = {
   VARIETY_KEY: 'ai_suggestion_history',
   MAX_HISTORY: 50,
 
+  // ─── MOOD PROFILES — Detailed guidance for AI generation ───
+
+  MOOD_PROFILES: {
+    focused: {
+      description: 'The user is in a deep-work, high-concentration state. They want to tackle meaningful tasks with full attention.',
+      difficultyBias: 'medium to hard',
+      categoryBias: 'main, side',
+      tone: 'direct, purposeful, action-oriented',
+      rules: [
+        'Prioritize single-task quests that require sustained attention',
+        'Suggest medium or hard difficulty quests — the user wants to engage their mind',
+        'Avoid social or highly fragmented tasks',
+        'Descriptions should emphasize focus blocks, uninterrupted time, and deep engagement',
+        'Include at least one "main" category quest'
+      ],
+      examples: ['Deep Work Session on [topic]', 'Single-Task Sprint: 45 min uninterrupted', 'Complete the hardest pending quest', 'Refine or perfect a current project']
+    },
+    relaxed: {
+      description: 'The user wants low-pressure, gentle progress. They are not looking for intense challenges.',
+      difficultyBias: 'easy',
+      categoryBias: 'daily, side',
+      tone: 'calm, encouraging, low-stakes',
+      rules: [
+        'Suggest ONLY easy difficulty quests',
+        'Prioritize daily maintenance and light side quests',
+        'Avoid hard quests or anything with tight deadlines',
+        'Descriptions should emphasize enjoyment, mindfulness, and process over outcome',
+        'Include restorative or organizing tasks'
+      ],
+      examples: ['Light tidying or organizing', '15-minute mindful walk', 'Gentle reading or journaling', 'Water plants or small maintenance']
+    },
+    challenged: {
+      description: 'The user is feeling ambitious, energized by difficulty, or wants to prove something to themselves.',
+      difficultyBias: 'hard',
+      categoryBias: 'main, weekly',
+      tone: 'motivational, bold, pushing boundaries',
+      rules: [
+        'Suggest mostly hard difficulty quests — the user WANTS a challenge',
+        'Prioritize main and weekly category quests',
+        'Frame descriptions as breakthroughs, limits to push, or skills to test',
+        'Include at least one quest that scares them a little (in a good way)',
+        'Avoid easy "filler" tasks — they will feel patronizing'
+      ],
+      examples: ['Tackle your hardest pending quest', 'Learn something completely new in [topic]', 'Double your usual output goal', 'Attempt a project you think is too big']
+    },
+    creative: {
+      description: 'The user is in an exploratory, playful, idea-generating mindset. They want novelty and self-expression.',
+      difficultyBias: 'easy to medium',
+      categoryBias: 'side',
+      tone: 'playful, experimental, imaginative',
+      rules: [
+        'Suggest creative, open-ended, or experimental quests',
+        'Prioritize side quests that allow exploration',
+        'Include cross-topic hybrid ideas (e.g., music + cooking)',
+        'Descriptions should invite play, curiosity, and "what if" thinking',
+        'Avoid rigid, repetitive, or highly structured tasks'
+      ],
+      examples: ['Try a completely new technique in [topic]', 'Combine two interests in one quest', 'Create something with no rules or expectations', 'Explore an idea you have been saving for later']
+    },
+    social: {
+      description: 'The user wants connection, collaboration, or to engage with others. They are energized by people.',
+      difficultyBias: 'easy to medium',
+      categoryBias: 'side, weekly',
+      tone: 'warm, collaborative, community-minded',
+      rules: [
+        'Suggest quests that involve other people directly or indirectly',
+        'Include teaching, sharing, networking, or helping others',
+        'Collaborative or communicative tasks are ideal',
+        'Descriptions should emphasize connection, shared goals, or giving back',
+        'Include at least one quest that strengthens a relationship'
+      ],
+      examples: ['Teach someone a skill you know', 'Reach out to a friend or colleague', 'Join or contribute to a community', 'Collaborate on a shared project']
+    }
+  },
+
   // ─── MAIN ENTRY POINT ───
 
   async generateSuggestions(qb, currentMood) {
@@ -61,6 +136,49 @@ const AIService = {
     return result;
   },
 
+  // ─── CUSTOM PROMPT ENTRY POINT ───
+
+  async generateCustomSuggestions(qb, currentMood, userPrompt) {
+    console.log('[AIService] generateCustomSuggestions called. aiEnabled:', qb.settings.aiEnabled, 'provider:', qb.settings.aiProvider);
+    if (!qb.settings.aiEnabled) {
+      throw new Error('AI is not enabled in settings');
+    }
+
+    if (this.isRateLimited()) {
+      throw new Error('Rate limited — too many requests. Try again in a minute.');
+    }
+
+    const provider = qb.settings.aiProvider || 'pollinations';
+    console.log('[AIService] Using provider for custom prompt:', provider);
+
+    let result;
+    if (provider === 'pollinations') {
+      result = await this.callPollinationsCustom(qb, currentMood, userPrompt);
+    } else if (provider === 'server') {
+      result = await this.callServerProxyCustom(qb, currentMood, userPrompt);
+    } else if (provider === 'gemini') {
+      const apiKey = qb.settings.aiApiKey;
+      if (!apiKey) throw new Error('No Gemini API key configured');
+      result = await this.callGeminiCustom(qb, currentMood, userPrompt, apiKey);
+    } else if (provider === 'openai') {
+      const apiKey = qb.settings.aiApiKey;
+      if (!apiKey) throw new Error('No OpenAI API key configured');
+      result = await this.callOpenAICustom(qb, currentMood, userPrompt, apiKey);
+    } else if (provider === 'chrome') {
+      result = await this.callChromeAICustom(qb, currentMood, userPrompt);
+    }
+
+    console.log('[AIService] Custom prompt provider returned result:', result);
+
+    if (!result || result.length === 0) {
+      throw new Error('AI returned empty suggestions');
+    }
+
+    this.recordRequest();
+    this.trackHistory(result);
+    return result;
+  },
+
   // ─── SERVER PROXY (SHARED KEY) ───
 
   async callServerProxy(qb, currentMood) {
@@ -82,9 +200,28 @@ const AIService = {
     return this.parseResponse(text);
   },
 
+  async callServerProxyCustom(qb, currentMood, userPrompt) {
+    const prompt = this.buildPrompt(qb, currentMood, userPrompt);
+
+    const response = await fetch('/api/gemini', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt })
+    });
+
+    if (!response.ok) {
+      const err = await response.text();
+      throw new Error(`Server proxy error ${response.status}: ${err}`);
+    }
+
+    const data = await response.json();
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '[]';
+    return this.parseResponse(text);
+  },
+
   // ─── RICH PERSONALIZED PROMPT ENGINEERING ───
 
-  buildPrompt(qb, currentMood) {
+  buildPrompt(qb, currentMood, customUserPrompt = null) {
     const patterns = Suggestions.analyzePatterns(qb);
     const allQuests = qb.quests;
     const completedQuests = allQuests.filter(q => q.completed);
@@ -144,61 +281,15 @@ const AIService = {
     else if (hour >= 17) timeOfDay = 'evening';
     else if (hour >= 12) timeOfDay = 'afternoon';
 
-    return `You are an elite personal growth coach and quest designer for a gamified productivity app called "Quest Board". The user is an adventurer who completes quests (tasks) to gain XP and level up.
+    // Build mood guidance from MOOD_PROFILES
+    const moodProfile = this.MOOD_PROFILES[currentMood] || this.MOOD_PROFILES.focused;
+    const moodGuidance = `MOOD PROFILE — ${currentMood.toUpperCase()}:\n${moodProfile.description}\n- Difficulty bias: ${moodProfile.difficultyBias}\n- Category bias: ${moodProfile.categoryBias}\n- Tone: ${moodProfile.tone}\n- Mood-specific rules:\n${moodProfile.rules.map(r => '  • ' + r).join('\n')}\n- Example quests for this mood: ${moodProfile.examples.join('; ')}`;
 
-USER PROFILE:
-- Name: ${qb.settings.name || 'Adventurer'}
-- Level: ${qb.level} | Streak: ${qb.streak} days
-- Current mood: ${currentMood}
-- Time of day: ${timeOfDay} (${now.toLocaleDateString()} ${now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})})
-- Completion rate: ${(patterns.completionRate * 100).toFixed(0)}%
-- Preferred productivity time: ${patterns.preferredTime}
-- Workload stress: ${patterns.workloadScore}/3
-- Overdue quests: ${patterns.overdueCount}
+    const customSection = customUserPrompt
+      ? `\nUSER'S CUSTOM REQUEST:\n"""${customUserPrompt}"""\nIncorporate this request into your suggestions while still respecting the mood profile and quest history above.`
+      : '';
 
-QUEST HISTORY ANALYSIS:
-Total quests: ${allQuests.length} | Completed: ${completedQuests.length} | Pending: ${pendingQuests.length}
-Category distribution: ${catBreakdown}
-Difficulty distribution: ${diffBreakdown}
-Time-of-day pattern: ${timePattern}
-Detected interest topics: ${topics}
-Inferred skill areas: ${skillAreas.join(', ') || 'still discovering'}
-
-RECENTLY COMPLETED QUESTS:
-${recentCompleted}
-
-PENDING QUESTS:
-${pendingList}
-
-PREVIOUSLY SUGGESTED (AVOID REPEATING):
-${recentTitles}
-
-YOUR TASK:
-Generate 6-8 quest suggestions that are:
-1. HIGHLY SPECIFIC to the user's detected interests and skills
-2. VARIED — mix different categories, difficulties, and types
-3. SKILL-BUILDING — each quest should help the user improve in a concrete way
-4. PERSONALITY-FITTING — match the user's apparent personality from their quest patterns
-5. CONTEXT-AWARE — consider their current mood, workload, time of day, and overdue items
-6. CREATIVE — use adventure/RPG themed language but keep tasks actionable
-
-For each suggestion, provide:
-- title: specific, creative quest name (NOT generic)
-- category: one of [daily, weekly, side, main]
-- difficulty: one of [easy, medium, hard]
-- description: 1-2 sentences explaining WHY this quest matters for THEM specifically
-- reason: one of [streak, overdue, time, balance, progression, recovery, mood, habit, skill, creative, challenge, wellness]
-
-CRITICAL RULES:
-- NEVER suggest something they've recently done
-- If they have many pending hard quests, suggest easier ones
-- If their completion rate is low, suggest quick wins
-- If they have a dominant topic, suggest quests that EXPAND their skills
-- Include at least ONE quest from a category they rarely use
-- Include at least ONE quest that challenges them slightly
-- Include at least ONE creative/unusual quest
-
-Return ONLY a valid JSON array. No markdown, no explanation.`;
+    return `You are an elite personal growth coach and quest designer for a gamified productivity app called "Quest Board". The user is an adventurer who completes quests (tasks) to gain XP and level up.\n\nUSER PROFILE:\n- Name: ${qb.settings.name || 'Adventurer'}\n- Level: ${qb.level} | Streak: ${qb.streak} days\n- Current mood: ${currentMood}\n- Time of day: ${timeOfDay} (${now.toLocaleDateString()} ${now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})})\n- Completion rate: ${(patterns.completionRate * 100).toFixed(0)}%\n- Preferred productivity time: ${patterns.preferredTime}\n- Workload stress: ${patterns.workloadScore}/3\n- Overdue quests: ${patterns.overdueCount}\n\n${moodGuidance}\n\nQUEST HISTORY ANALYSIS:\nTotal quests: ${allQuests.length} | Completed: ${completedQuests.length} | Pending: ${pendingQuests.length}\nCategory distribution: ${catBreakdown}\nDifficulty distribution: ${diffBreakdown}\nTime-of-day pattern: ${timePattern}\nDetected interest topics: ${topics}\nInferred skill areas: ${skillAreas.join(', ') || 'still discovering'}\n\nRECENTLY COMPLETED QUESTS:\n${recentCompleted}\n\nPENDING QUESTS:\n${pendingList}\n\nPREVIOUSLY SUGGESTED (AVOID REPEATING):\n${recentTitles}${customSection}\n\nYOUR TASK:\nGenerate 6-8 quest suggestions that are:\n1. HIGHLY SPECIFIC to the user's detected interests and skills\n2. MOOD-FIRST — at least 60% of suggestions must strongly reflect the current mood profile above\n3. VARIED — mix different categories, difficulties, and types (within mood constraints)\n4. SKILL-BUILDING — each quest should help the user improve in a concrete way\n5. PERSONALITY-FITTING — match the user's apparent personality from their quest patterns\n6. CONTEXT-AWARE — consider workload, time of day, and overdue items\n7. CREATIVE — use adventure/RPG themed language but keep tasks actionable\n\nFor each suggestion, provide:\n- title: specific, creative quest name (NOT generic)\n- category: one of [daily, weekly, side, main]\n- difficulty: one of [easy, medium, hard]\n- description: 1-2 sentences explaining WHY this quest matters for THEM specifically. The tone MUST match the mood profile.\n- reason: one of [streak, overdue, time, balance, progression, recovery, mood, habit, skill, creative, challenge, wellness]\n\nCRITICAL RULES:\n- NEVER suggest something they've recently done\n- If they have many pending hard quests, suggest easier ones\n- If their completion rate is low, suggest quick wins\n- If they have a dominant topic, suggest quests that EXPAND their skills\n- Include at least ONE quest from a category they rarely use\n- Include at least ONE quest that challenges them slightly (if mood allows)\n- Include at least ONE creative/unusual quest\n- MOOD IS PARAMOUNT: every suggestion must feel like it was crafted specifically for someone feeling "${currentMood}"\n\nReturn ONLY a valid JSON array. No markdown, no explanation.`;
   },
 
   inferSkillAreas(quests) {
@@ -264,10 +355,73 @@ Return ONLY a valid JSON array. No markdown, no explanation.`;
     return this.parseResponse(text);
   },
 
+  async callGeminiCustom(qb, currentMood, userPrompt, apiKey) {
+    const prompt = this.buildPrompt(qb, currentMood, userPrompt);
+    console.log('[AIService] Calling Gemini API with custom prompt...');
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.0-pro:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            temperature: 0.9,
+            maxOutputTokens: 4096
+          }
+        })
+      }
+    );
+
+    if (!response.ok) {
+      const err = await response.text();
+      console.error('[AIService] Gemini API error:', response.status, err);
+      throw new Error(`Gemini API error ${response.status}: ${err}`);
+    }
+
+    const data = await response.json();
+    console.log('[AIService] Gemini custom response:', data);
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '[]';
+    return this.parseResponse(text);
+  },
+
   // ─── PROVIDER: OPENAI ───
 
   async callOpenAI(qb, currentMood, apiKey) {
     const prompt = this.buildPrompt(qb, currentMood);
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [
+          {
+            role: 'system',
+            content: 'You are a personal growth coach. Return only valid JSON arrays of quest suggestions.'
+          },
+          { role: 'user', content: prompt }
+        ],
+        temperature: 0.9,
+        max_tokens: 4096,
+        response_format: { type: 'json_object' }
+      })
+    });
+
+    if (!response.ok) {
+      const err = await response.text();
+      throw new Error(`OpenAI API error ${response.status}: ${err}`);
+    }
+
+    const data = await response.json();
+    const text = data.choices?.[0]?.message?.content || '[]';
+    return this.parseResponse(text);
+  },
+
+  async callOpenAICustom(qb, currentMood, userPrompt, apiKey) {
+    const prompt = this.buildPrompt(qb, currentMood, userPrompt);
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -334,6 +488,39 @@ Return ONLY a valid JSON array. No markdown, no explanation.`;
     return this.parseResponse(text);
   },
 
+  async callPollinationsCustom(qb, currentMood, userPrompt) {
+    const prompt = this.buildPrompt(qb, currentMood, userPrompt);
+    console.log('[AIService] Calling Pollinations AI with custom prompt...');
+    const response = await fetch('https://text.pollinations.ai/openai', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'openai',
+        messages: [
+          {
+            role: 'system',
+            content: 'You are a personal growth coach. Return only valid JSON arrays of quest suggestions. No markdown, no explanation.'
+          },
+          { role: 'user', content: prompt }
+        ],
+        temperature: 0.9,
+        max_tokens: 4096,
+        response_format: { type: 'json_object' }
+      })
+    });
+
+    if (!response.ok) {
+      const err = await response.text();
+      console.error('[AIService] Pollinations API error:', response.status, err);
+      throw new Error(`Pollinations API error ${response.status}: ${err}`);
+    }
+
+    const data = await response.json();
+    console.log('[AIService] Pollinations custom response:', data);
+    const text = data.choices?.[0]?.message?.content || '[]';
+    return this.parseResponse(text);
+  },
+
   // ─── PROVIDER: CHROME BUILT-IN AI ───
 
   async callChromeAI(qb, currentMood) {
@@ -346,6 +533,22 @@ Return ONLY a valid JSON array. No markdown, no explanation.`;
     });
 
     const prompt = this.buildPrompt(qb, currentMood);
+    const result = await session.prompt(prompt);
+    session.destroy();
+
+    return this.parseResponse(result);
+  },
+
+  async callChromeAICustom(qb, currentMood, userPrompt) {
+    if (!window.ai || !window.ai.languageModel) {
+      throw new Error('Chrome Built-in AI not available');
+    }
+
+    const session = await window.ai.languageModel.create({
+      systemPrompt: 'You are a personal growth coach. Return only valid JSON arrays of quest suggestions.'
+    });
+
+    const prompt = this.buildPrompt(qb, currentMood, userPrompt);
     const result = await session.prompt(prompt);
     session.destroy();
 
