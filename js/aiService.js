@@ -18,16 +18,19 @@ const AIService = {
 
     if (this.isRateLimited()) return null;
 
-    const provider = qb.settings.aiProvider || 'gemini';
-    const apiKey = qb.settings.aiApiKey;
-
-    if (!apiKey && provider !== 'chrome') return null;
+    const provider = qb.settings.aiProvider || 'server';
 
     try {
       let result;
-      if (provider === 'gemini') {
+      if (provider === 'server') {
+        result = await this.callServerProxy(qb, currentMood);
+      } else if (provider === 'gemini') {
+        const apiKey = qb.settings.aiApiKey;
+        if (!apiKey) return null;
         result = await this.callGemini(qb, currentMood, apiKey);
       } else if (provider === 'openai') {
+        const apiKey = qb.settings.aiApiKey;
+        if (!apiKey) return null;
         result = await this.callOpenAI(qb, currentMood, apiKey);
       } else if (provider === 'chrome') {
         result = await this.callChromeAI(qb, currentMood);
@@ -45,6 +48,27 @@ const AIService = {
     }
   },
 
+  // ─── SERVER PROXY (SHARED KEY) ───
+
+  async callServerProxy(qb, currentMood) {
+    const prompt = this.buildPrompt(qb, currentMood);
+
+    const response = await fetch('/api/gemini', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt })
+    });
+
+    if (!response.ok) {
+      const err = await response.text();
+      throw new Error(`Server proxy error ${response.status}: ${err}`);
+    }
+
+    const data = await response.json();
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '[]';
+    return this.parseResponse(text);
+  },
+
   // ─── RICH PERSONALIZED PROMPT ENGINEERING ───
 
   buildPrompt(qb, currentMood) {
@@ -53,26 +77,22 @@ const AIService = {
     const completedQuests = allQuests.filter(q => q.completed);
     const pendingQuests = allQuests.filter(q => !q.completed);
 
-    // Deep topic analysis
     const topicData = Suggestions.detectTopics(qb);
-    const topics = Object.entries(topicData.topicCounts)
+    const topics = Object.entries(topicData.topicCounts || {})
       .sort((a, b) => b[1] - a[1])
       .map(([t, c]) => `${t}(${c})`)
       .join(', ') || 'none yet';
 
-    // Category breakdown
     const catBreakdown = Object.entries(patterns.categoryBalance)
       .map(([cat, count]) => `${cat}: ${count}`)
       .join(', ');
 
-    // Difficulty breakdown
     const diffCounts = { easy: 0, medium: 0, hard: 0 };
     allQuests.forEach(q => { diffCounts[q.difficulty] = (diffCounts[q.difficulty] || 0) + 1; });
     const diffBreakdown = Object.entries(diffCounts)
       .map(([d, c]) => `${d}: ${c}`)
       .join(', ');
 
-    // Recent completed with timestamps
     const recentCompleted = completedQuests
       .slice(-15)
       .reverse()
@@ -82,13 +102,11 @@ const AIService = {
       })
       .join('\n') || 'None yet';
 
-    // Pending quests
     const pendingList = pendingQuests
       .slice(0, 10)
       .map(q => `"${q.title}" [${q.category}, ${q.difficulty}${q.dueDate ? ', due ' + q.dueDate : ''}]`)
       .join('\n') || 'None';
 
-    // Time pattern analysis
     const hourCounts = {};
     completedQuests.forEach(q => {
       if (q.completedAt) {
@@ -102,10 +120,7 @@ const AIService = {
       .map(([t, c]) => `${t}: ${c}`)
       .join(', ') || 'no data';
 
-    // Skill progression inference
     const skillAreas = this.inferSkillAreas(allQuests);
-
-    // Variety history (to avoid repetition)
     const history = this.getHistory();
     const recentTitles = history.slice(-20).map(h => h.title).join('; ') || 'none';
 
@@ -116,9 +131,9 @@ const AIService = {
     else if (hour >= 17) timeOfDay = 'evening';
     else if (hour >= 12) timeOfDay = 'afternoon';
 
-    return `You are an elite personal growth coach and quest designer for a gamified productivity app called "Quest Board". Your job is to analyze the user's complete quest history and design deeply personalized, highly specific quests that will help them grow in their unique skill areas.
+    return `You are an elite personal growth coach and quest designer for a gamified productivity app called "Quest Board". The user is an adventurer who completes quests (tasks) to gain XP and level up.
 
-## USER PROFILE
+USER PROFILE:
 - Name: ${qb.settings.name || 'Adventurer'}
 - Level: ${qb.level} | Streak: ${qb.streak} days
 - Current mood: ${currentMood}
@@ -128,50 +143,47 @@ const AIService = {
 - Workload stress: ${patterns.workloadScore}/3
 - Overdue quests: ${patterns.overdueCount}
 
-## QUEST HISTORY ANALYSIS
+QUEST HISTORY ANALYSIS:
 Total quests: ${allQuests.length} | Completed: ${completedQuests.length} | Pending: ${pendingQuests.length}
-
 Category distribution: ${catBreakdown}
 Difficulty distribution: ${diffBreakdown}
 Time-of-day pattern: ${timePattern}
-
 Detected interest topics: ${topics}
-
 Inferred skill areas: ${skillAreas.join(', ') || 'still discovering'}
 
-## RECENTLY COMPLETED QUESTS
+RECENTLY COMPLETED QUESTS:
 ${recentCompleted}
 
-## PENDING QUESTS
+PENDING QUESTS:
 ${pendingList}
 
-## PREVIOUSLY SUGGESTED (AVOID REPEATING)
+PREVIOUSLY SUGGESTED (AVOID REPEATING):
 ${recentTitles}
 
-## YOUR TASK
+YOUR TASK:
 Generate 6-8 quest suggestions that are:
-1. HIGHLY SPECIFIC to the user's detected interests and skills — not generic advice
-2. VARIED — mix different categories, difficulties, and types. Do NOT suggest the same type of quest repeatedly
+1. HIGHLY SPECIFIC to the user's detected interests and skills
+2. VARIED — mix different categories, difficulties, and types
 3. SKILL-BUILDING — each quest should help the user improve in a concrete way
 4. PERSONALITY-FITTING — match the user's apparent personality from their quest patterns
 5. CONTEXT-AWARE — consider their current mood, workload, time of day, and overdue items
 6. CREATIVE — use adventure/RPG themed language but keep tasks actionable
 
 For each suggestion, provide:
-- title: specific, creative quest name (NOT generic like "Complete Task" or "Practice Skill")
+- title: specific, creative quest name (NOT generic)
 - category: one of [daily, weekly, side, main]
-- difficulty: one of [easy, medium, hard] — match their current capability
-- description: 1-2 sentences that explain WHY this quest matters for THEM specifically
+- difficulty: one of [easy, medium, hard]
+- description: 1-2 sentences explaining WHY this quest matters for THEM specifically
 - reason: one of [streak, overdue, time, balance, progression, recovery, mood, habit, skill, creative, challenge, wellness]
 
 CRITICAL RULES:
-- NEVER suggest something they've recently done (check history)
+- NEVER suggest something they've recently done
 - If they have many pending hard quests, suggest easier ones
 - If their completion rate is low, suggest quick wins
-- If they have a dominant topic, suggest quests that EXPAND their skills in that area (not just repeat)
+- If they have a dominant topic, suggest quests that EXPAND their skills
 - Include at least ONE quest from a category they rarely use
-- Include at least ONE quest that challenges them slightly beyond their comfort zone
-- Include at least ONE creative/unusual quest they wouldn't think of themselves
+- Include at least ONE quest that challenges them slightly
+- Include at least ONE creative/unusual quest
 
 Return ONLY a valid JSON array. No markdown, no explanation.`;
   },
@@ -252,7 +264,7 @@ Return ONLY a valid JSON array. No markdown, no explanation.`;
         messages: [
           {
             role: 'system',
-            content: 'You are an elite personal growth coach. Return only valid JSON arrays of quest suggestions.'
+            content: 'You are a personal growth coach. Return only valid JSON arrays of quest suggestions.'
           },
           { role: 'user', content: prompt }
         ],
@@ -409,7 +421,11 @@ Return ONLY a valid JSON array. No markdown, no explanation.`;
 
   isAvailable(qb) {
     if (!qb.settings.aiEnabled) return false;
-    const provider = qb.settings.aiProvider || 'gemini';
+    const provider = qb.settings.aiProvider || 'server';
+    if (provider === 'server') {
+      // Server proxy is always available if enabled (server has the key)
+      return true;
+    }
     if (provider === 'chrome') {
       return !!(window.ai && window.ai.languageModel);
     }

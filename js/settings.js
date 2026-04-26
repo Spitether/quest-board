@@ -86,9 +86,10 @@ const Settings = {
     if (!container) return;
 
     const aiEnabled = qb.settings.aiEnabled || false;
-    const aiProvider = qb.settings.aiProvider || 'gemini';
+    const aiProvider = qb.settings.aiProvider || 'server';
     const aiApiKey = qb.settings.aiApiKey || '';
     const isAvailable = AIService.isAvailable(qb);
+    const isServer = aiProvider === 'server';
 
     container.innerHTML = `
       <div class="settings-section">
@@ -120,13 +121,15 @@ const Settings = {
           }).join('')}
         </div>
       </div>
-      <div class="settings-section ${aiEnabled && aiProvider !== 'chrome' ? '' : 'disabled'}">
+      <div class="settings-section ${aiEnabled && !isServer ? '' : 'disabled'}">
         <h3>API Key</h3>
         <input type="password" class="settings-input" id="aiApiKeyInput" placeholder="Enter your API key..." value="${esc(aiApiKey)}">
         <div class="ai-key-hint">
           ${aiProvider === 'gemini'
             ? 'Get a free key at <a href="https://aistudio.google.com/app/apikey" target="_blank">Google AI Studio</a>'
-            : 'Get your key at <a href="https://platform.openai.com/api-keys" target="_blank">OpenAI Platform</a>'}
+            : aiProvider === 'openai'
+            ? 'Get your key at <a href="https://platform.openai.com/api-keys" target="_blank">OpenAI Platform</a>'
+            : 'Select Gemini or OpenAI to enter your own key'}
         </div>
       </div>
       <div class="settings-section">
