@@ -1,0 +1,229 @@
+/* ===== PARTY PANEL ===== */
+.party-section { margin-bottom: 16px; }
+
+.party-section h3 {
+  color: var(--gold);
+  font-size: 0.9rem;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.party-input {
+  width: 100%;
+  padding: 8px;
+  border-radius: 8px;
+  border: 2px solid var(--gold-dark);
+  background: rgba(0, 0, 0, 0.3);
+  color: var(--text);
+  font-size: 0.85rem;
+  font-family: inherit;
+  margin-bottom: 8px;
+}
+
+.party-input:focus { outline: none; border-color: var(--gold); }
+
+.party-btn {
+  width: 100%;
+  padding: 8px;
+  border-radius: 8px;
+  border: 2px solid var(--gold);
+  background: rgba(201, 168, 76, 0.15);
+  color: var(--gold);
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: bold;
+  transition: all 0.3s;
+  font-family: inherit;
+}
+
+.party-btn:hover {
+  background: var(--gold);
+  color: var(--wood-dark);
+}
+
+.party-member {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  border: 2px solid var(--gold-dark);
+  margin-bottom: 6px;
+  transition: all 0.3s;
+}
+
+.party-member:hover { border-color: var(--gold); }
+
+.party-member-avatar {
+  font-size: 2rem;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.party-member-info { flex: 1; }
+
+.party-member-name {
+  font-weight: bold;
+  color: var(--gold);
+  font-size: 0.85rem;
+}
+
+.party-member-level {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+}
+
+.party-member-status {
+  font-size: 0.65rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(124, 179, 66, 0.2);
+  color: var(--success);
+  border: 1px solid var(--success);
+}
+
+.party-member-status.offline {
+  background: rgba(100, 100, 100, 0.2);
+  color: var(--text-dim);
+  border-color: var(--text-dim);
+}
+
+.party-member-remove {
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--main);
+  background: transparent;
+  color: var(--main);
+  cursor: pointer;
+  font-size: 0.7rem;
+  transition: all 0.2s;
+}
+
+.party-member-remove:hover {
+  background: var(--main);
+  color: white;
+}
+
+/* Leaderboard */
+.leaderboard-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.leaderboard-table th,
+.leaderboard-table td {
+  padding: 8px;
+  text-align: left;
+  font-size: 0.8rem;
+  border-bottom: 1px solid var(--gold-dark);
+}
+
+.leaderboard-table th {
+  color: var(--gold);
+  font-weight: bold;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.leaderboard-table td { color: var(--text); }
+
+.leaderboard-rank {
+  font-weight: bold;
+  color: var(--gold);
+  width: 30px;
+}
+
+.leaderboard-rank.top {
+  font-size: 1rem;
+  text-shadow: 0 0 10px var(--accent-glow);
+}
+
+.leaderboard-name { font-weight: 600; }
+
+.leaderboard-xp {
+  color: var(--gold);
+  font-weight: bold;
+}
+
+.leaderboard-avatar {
+  font-size: 1.4rem;
+}
+
+/* Party Quests */
+.party-quest {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  border: 2px solid var(--gold-dark);
+  margin-bottom: 6px;
+}
+
+.party-quest-info { flex: 1; }
+
+.party-quest-title {
+  font-weight: bold;
+  color: var(--gold);
+  font-size: 0.85rem;
+}
+
+.party-quest-desc {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+}
+
+.party-quest-progress {
+  width: 100%;
+  height: 6px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 3px;
+  margin-top: 4px;
+  overflow: hidden;
+}
+
+.party-quest-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--gold), var(--gold-light));
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+
+.party-quest-reward {
+  font-size: 0.75rem;
+  color: var(--success);
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+.party-quest-claim {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 2px solid var(--success);
+  background: rgba(124, 179, 66, 0.15);
+  color: var(--success);
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: bold;
+  transition: all 0.3s;
+  font-family: inherit;
+}
+
+.party-quest-claim:hover {
+  background: var(--success);
+  color: var(--wood-dark);
+}
+
+.party-quest-claim:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  border-color: var(--text-dim);
+  color: var(--text-dim);
+  background: transparent;
+}

@@ -1,0 +1,41 @@
+/* ===== SEASONAL BANNER ===== */
+.seasonal-banner {
+  background: linear-gradient(90deg, rgba(201, 168, 76, 0.2), rgba(201, 168, 76, 0.05));
+  border: 2px solid var(--gold-dark);
+  border-radius: 12px;
+  padding: 10px 16px;
+  margin-bottom: 12px;
+  text-align: center;
+  animation: slideIn 0.5s ease;
+}
+
+.seasonal-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.seasonal-icon { font-size: 1.4rem; }
+
+.seasonal-name {
+  font-weight: bold;
+  color: var(--gold);
+  font-size: 0.95rem;
+}
+
+.seasonal-boost {
+  font-size: 0.8rem;
+  color: var(--success);
+  background: rgba(124, 179, 66, 0.15);
+  padding: 2px 8px;
+  border-radius: 10px;
+  border: 1px solid var(--success);
+}
+
+/* ===== SEASONAL DECORATIONS ===== */
+.decoration-item.seasonal {
+  animation: float 4s ease-in-out infinite;
+  pointer-events: none;
+}

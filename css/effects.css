@@ -1,0 +1,106 @@
+/* ===== EFFECTS ===== */
+
+/* Item Drop */
+.item-drop-container {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  z-index: 150;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  pointer-events: none;
+}
+
+.item-drop {
+  background: linear-gradient(180deg, var(--wood-medium) 0%, var(--wood-dark) 100%);
+  border: 2px solid var(--gold);
+  border-radius: 12px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  animation: itemDropSlide 0.5s ease, itemDropFade 0.5s ease 2.5s forwards;
+  box-shadow: 0 4px 20px var(--shadow);
+}
+
+.drop-icon { font-size: 1.4rem; }
+
+.drop-text {
+  color: var(--text);
+  font-size: 0.85rem;
+}
+
+.drop-name {
+  color: var(--gold);
+  font-weight: bold;
+}
+
+/* Toast */
+.toast-container {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 150;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  pointer-events: none;
+}
+
+.toast {
+  background: linear-gradient(180deg, var(--wood-medium) 0%, var(--wood-dark) 100%);
+  border: 2px solid var(--gold);
+  border-radius: 12px;
+  padding: 10px 18px;
+  color: var(--gold);
+  font-weight: bold;
+  font-size: 0.9rem;
+  animation: toastSlide 0.4s ease, toastFade 0.4s ease 2.6s forwards;
+  box-shadow: 0 4px 20px var(--shadow);
+  text-align: center;
+  white-space: nowrap;
+}
+
+.toast.achievement {
+  background: linear-gradient(180deg, #4a3a1e 0%, #2c1e10 100%);
+}
+
+/* Sparkles */
+.sparkle {
+  position: fixed;
+  pointer-events: none;
+  animation: sparkleAnim 1s ease-out forwards;
+  font-size: 1.2rem;
+  z-index: 100;
+}
+
+/* Float XP */
+.float-xp {
+  position: fixed;
+  pointer-events: none;
+  color: var(--success);
+  font-weight: bold;
+  font-size: 1.2rem;
+  animation: floatUp 1.5s ease-out forwards;
+  z-index: 100;
+}
+
+/* Screen Flash */
+.screen-flash {
+  position: fixed;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.3);
+  pointer-events: none;
+  z-index: 199;
+  animation: flashFade 0.5s ease forwards;
+}
+
+/* Confetti Canvas */
+#confettiCanvas {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 180;
+}

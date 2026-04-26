@@ -1,0 +1,68 @@
+/* ===== CALENDAR WIDGET ===== */
+.calendar-widget {
+  background: linear-gradient(180deg, var(--wood-medium) 0%, var(--wood-dark) 100%);
+  border: 2px solid var(--gold-dark);
+  border-radius: 14px;
+  padding: 10px 12px;
+  margin-top: 10px;
+}
+
+.calendar-widget .panel-title {
+  color: var(--gold);
+  font-size: 0.8rem;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.calendar-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.calendar-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  font-size: 0.75rem;
+  transition: all 0.2s;
+}
+
+.calendar-item.urgent {
+  border: 1px solid var(--main);
+  background: rgba(229, 57, 53, 0.1);
+}
+
+.calendar-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--weekly);
+  flex-shrink: 0;
+}
+
+.calendar-dot.urgent { background: var(--main); animation: pulse 1.5s infinite; }
+
+.calendar-title {
+  flex: 1;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.calendar-days {
+  color: var(--text-dim);
+  font-size: 0.7rem;
+  font-weight: bold;
+}
+
+.calendar-empty {
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 0.75rem;
+  padding: 8px;
+}

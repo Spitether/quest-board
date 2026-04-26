@@ -1,0 +1,362 @@
+/* ===== THEMES ===== */
+
+/* Fantasy Theme (default) */
+body.theme-fantasy {
+  font-family: 'Georgia', serif;
+  --wood-dark: #2c1810;
+  --wood-medium: #4a3428;
+  --wood-light: #6d4c41;
+  --parchment: #f5e6c8;
+  --gold: #d4a017;
+  --text: #f5e6c8;
+  --shadow: rgba(0, 0, 0, 0.3);
+  --daily: #81c784;
+  --weekly: #64b5f6;
+  --side: #ffb74d;
+  --main: #e57373;
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Ctext y='20' font-size='20'%3E⚔️%3C/text%3E%3C/svg%3E"), auto;
+}
+
+body.theme-fantasy .sidebar,
+body.theme-fantasy .quest-card,
+body.theme-fantasy .modal,
+body.theme-fantasy .panel {
+  border-color: var(--gold);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+body.theme-fantasy .sidebar::after,
+body.theme-fantasy .board-header::after,
+body.theme-fantasy .modal::after {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border: 1px solid rgba(212, 160, 23, 0.15);
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+body.theme-fantasy .quest-card {
+  border-width: 2px;
+  border-style: solid;
+}
+
+body.theme-fantasy .character-avatar {
+  border-width: 4px;
+  border-style: double;
+}
+
+body.theme-fantasy *::-webkit-scrollbar { width: 10px; }
+body.theme-fantasy *::-webkit-scrollbar-track { background: var(--wood-dark); border-radius: 5px; }
+body.theme-fantasy *::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 5px; border: 2px solid var(--wood-dark); }
+
+/* Pixel Theme */
+body.theme-pixel {
+  font-family: 'Courier New', monospace;
+  --wood-dark: #1a1a2e;
+  --wood-medium: #16213e;
+  --wood-light: #0f3460;
+  --parchment: #e94560;
+  --gold: #e94560;
+  --text: #eaeaea;
+  --daily: #4ecca3;
+  --weekly: #f4d03f;
+  --side: #9b59b6;
+  --main: #e74c3c;
+  cursor: crosshair;
+  image-rendering: pixelated;
+}
+
+body.theme-pixel .sidebar,
+body.theme-pixel .quest-card,
+body.theme-pixel .modal,
+body.theme-pixel .panel {
+  border-radius: 0;
+  border-width: 4px;
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.5);
+}
+
+body.theme-pixel .sidebar::before,
+body.theme-pixel .board-header::before,
+body.theme-pixel .panel::before {
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.15) 2px,
+    rgba(0, 0, 0, 0.15) 4px
+  ),
+  repeating-linear-gradient(
+    90deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.15) 2px,
+    rgba(0, 0, 0, 0.15) 4px
+  );
+}
+
+body.theme-pixel .quest-card {
+  border-style: solid;
+  image-rendering: pixelated;
+}
+
+body.theme-pixel .quest-card:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.5);
+}
+
+body.theme-pixel .character-avatar {
+  border-radius: 0;
+  border-width: 4px;
+  image-rendering: pixelated;
+}
+
+body.theme-pixel .fab {
+  border-radius: 0;
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.5);
+}
+
+body.theme-pixel .fab:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.5);
+}
+
+body.theme-pixel .tab-btn,
+body.theme-pixel .panel-tab,
+body.theme-pixel .avatar-option,
+body.theme-pixel .decor-option,
+body.theme-pixel .companion-option,
+body.theme-pixel .theme-option {
+  border-radius: 0;
+}
+
+body.theme-pixel .avatar-option {
+  border-radius: 0;
+}
+
+body.theme-pixel .theme-option .theme-preview {
+  border-radius: 0;
+}
+
+body.theme-pixel *::-webkit-scrollbar { width: 12px; }
+body.theme-pixel *::-webkit-scrollbar-track { background: var(--wood-dark); }
+body.theme-pixel *::-webkit-scrollbar-thumb { background: var(--gold); border: 2px solid var(--wood-dark); }
+
+body.theme-pixel .tavern-background::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.08) 2px,
+    rgba(0, 0, 0, 0.08) 4px
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Cozy Theme */
+body.theme-cozy {
+  font-family: 'Segoe UI', sans-serif;
+  --wood-dark: #5d4037;
+  --wood-medium: #795548;
+  --parchment: #fff8e1;
+  --gold: #ff8f00;
+  --text: #3e2723;
+  --shadow: rgba(0, 0, 0, 0.15);
+  --daily: #66bb6a;
+  --weekly: #42a5f5;
+  --side: #ffa726;
+  --main: #ef5350;
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Ctext y='20' font-size='20'%3E🍵%3C/text%3E%3C/svg%3E"), auto;
+}
+
+body.theme-cozy .sidebar,
+body.theme-cozy .quest-card,
+body.theme-cozy .modal,
+body.theme-cozy .panel {
+  border-radius: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1), 0 8px 32px rgba(0, 0, 0, 0.05);
+  border-width: 0;
+}
+
+body.theme-cozy .sidebar {
+  background: linear-gradient(180deg, #8d6e63 0%, #6d4c41 100%);
+}
+
+body.theme-cozy .board-header {
+  border-radius: 24px;
+  background: linear-gradient(180deg, #8d6e63 0%, #6d4c41 100%);
+}
+
+body.theme-cozy .quest-card {
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+body.theme-cozy .quest-card:hover {
+  transform: translateY(-4px) scale(1.01);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+body.theme-cozy .character-avatar {
+  border-radius: 20px;
+  border-width: 3px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+body.theme-cozy .fab {
+  border-radius: 50px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+body.theme-cozy .tab-btn,
+body.theme-cozy .panel-tab {
+  border-radius: 20px;
+}
+
+body.theme-cozy .avatar-option,
+body.theme-cozy .decor-option,
+body.theme-cozy .companion-option,
+body.theme-cozy .theme-option {
+  border-radius: 16px;
+}
+
+body.theme-cozy .avatar-option {
+  border-radius: 16px;
+}
+
+body.theme-cozy .theme-option .theme-preview {
+  border-radius: 12px;
+}
+
+body.theme-cozy *::-webkit-scrollbar { width: 8px; }
+body.theme-cozy *::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.05); border-radius: 10px; }
+body.theme-cozy *::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 10px; }
+
+body.theme-cozy .tavern-background {
+  background: radial-gradient(ellipse at 30% 70%, rgba(139, 90, 43, 0.2) 0%, transparent 50%),
+              radial-gradient(ellipse at 70% 30%, rgba(255, 160, 0, 0.1) 0%, transparent 50%),
+              linear-gradient(180deg, #a1887f 0%, #8d6e63 40%, #6d4c41 100%);
+}
+
+/* Sci-Fi Theme */
+body.theme-scifi {
+  font-family: 'Arial', sans-serif;
+  --wood-dark: #0a0e27;
+  --wood-medium: #1a1f4b;
+  --parchment: #00d4ff;
+  --gold: #00d4ff;
+  --text: #e0e0e0;
+  --daily: #00ff88;
+  --weekly: #ff00ff;
+  --side: #ff0;
+  --main: #f44;
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Ctext y='20' font-size='20'%3E🚀%3C/text%3E%3C/svg%3E"), auto;
+}
+
+body.theme-scifi .sidebar,
+body.theme-scifi .quest-card,
+body.theme-scifi .modal,
+body.theme-scifi .panel {
+  border-color: var(--gold);
+  box-shadow: 0 0 20px rgba(0, 212, 255, 0.15), inset 0 0 20px rgba(0, 212, 255, 0.03);
+  border-radius: 8px;
+}
+
+body.theme-scifi .sidebar {
+  background: linear-gradient(180deg, #0f1535 0%, #0a0e27 100%);
+  border: 1px solid var(--gold);
+}
+
+body.theme-scifi .board-header {
+  background: linear-gradient(180deg, #0f1535 0%, #0a0e27 100%);
+  border: 1px solid var(--gold);
+  box-shadow: 0 0 20px rgba(0, 212, 255, 0.1);
+}
+
+body.theme-scifi .quest-card {
+  border: 1px solid;
+  background: linear-gradient(135deg, #0f1535 0%, #1a1f4b 100%);
+}
+
+body.theme-scifi .quest-card:hover {
+  box-shadow: 0 0 30px rgba(0, 212, 255, 0.25), 0 0 60px rgba(0, 212, 255, 0.1);
+}
+
+body.theme-scifi .character-avatar {
+  border-radius: 8px;
+  border-width: 2px;
+  box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+  background: radial-gradient(circle, #0f1535 0%, #1a1f4b 100%);
+}
+
+body.theme-scifi .fab {
+  border-radius: 8px;
+  box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+  background: linear-gradient(180deg, #00d4ff 0%, #0099cc 100%);
+}
+
+body.theme-scifi .tab-btn,
+body.theme-scifi .panel-tab {
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 0.75rem;
+}
+
+body.theme-scifi .avatar-option,
+body.theme-scifi .decor-option,
+body.theme-scifi .companion-option,
+body.theme-scifi .theme-option {
+  border-radius: 4px;
+  border-width: 1px;
+}
+
+body.theme-scifi .avatar-option {
+  border-radius: 4px;
+}
+
+body.theme-scifi .theme-option .theme-preview {
+  border-radius: 2px;
+}
+
+body.theme-scifi *::-webkit-scrollbar { width: 6px; }
+body.theme-scifi *::-webkit-scrollbar-track { background: var(--wood-dark); }
+body.theme-scifi *::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 0; }
+
+body.theme-scifi .tavern-background {
+  background: radial-gradient(ellipse at 50% 50%, rgba(0, 212, 255, 0.05) 0%, transparent 70%),
+              linear-gradient(180deg, #0a0e27 0%, #050818 50%, #02040a 100%);
+}
+
+body.theme-scifi .tavern-background::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 1px,
+    rgba(0, 212, 255, 0.03) 1px,
+    rgba(0, 212, 255, 0.03) 2px
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+body.theme-scifi .xp-bar-inner {
+  background: linear-gradient(90deg, #0099cc, #00d4ff, #66e5ff);
+  box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+}
+
+body.theme-scifi .panel-header {
+  border-bottom: 1px solid var(--gold);
+}
+
+body.theme-scifi .panel-tabs {
+  border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+}
+

@@ -1,0 +1,52 @@
+/* ===== LEVEL UP ===== */
+.levelup-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.5s ease;
+}
+
+.levelup-overlay.active { display: flex; }
+
+.levelup-content {
+  text-align: center;
+  animation: levelUpBounce 0.6s ease;
+}
+
+.levelup-ornament {
+  color: var(--gold);
+  font-size: 1.4rem;
+  letter-spacing: 8px;
+  margin: 8px 0;
+}
+
+.levelup-stars {
+  font-size: 1.8rem;
+  animation: starPulse 1s infinite;
+}
+
+.levelup-title {
+  font-size: 2.8rem;
+  color: var(--gold);
+  text-shadow: 0 0 30px var(--accent-glow);
+  margin: 8px 0;
+  letter-spacing: 4px;
+}
+
+.levelup-level {
+  font-size: 4.5rem;
+  color: var(--gold-light);
+  text-shadow: 0 0 40px var(--accent-glow);
+  font-weight: bold;
+  line-height: 1;
+}
+
+.levelup-subtitle {
+  color: var(--text-dim);
+  font-size: 1rem;
+  margin-top: 8px;
+}

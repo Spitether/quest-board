@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quest Board</title>
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/quest-cards.css">
+    <link rel="stylesheet" href="css/modal.css">
+    <link rel="stylesheet" href="css/panels.css">
+    <link rel="stylesheet" href="css/settings.css">
+    <link rel="stylesheet" href="css/inventory.css">
+    <link rel="stylesheet" href="css/progression.css">
+    <link rel="stylesheet" href="css/seasonal.css">
+    <link rel="stylesheet" href="css/calendar.css">
+    <link rel="stylesheet" href="css/party.css">
+    <link rel="stylesheet" href="css/suggestions.css">
+    <link rel="stylesheet" href="css/themes.css">
+    <link rel="stylesheet" href="css/effects.css">
+</head>
+<body>
+    <div class="tavern-background" id="tavernBackground"></div>
+    <div class="decorations-layer" id="decorationsLayer"></div>
+
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="tavern-sign" id="tavernSign">🍺 The Rusty Sword</div>
+            </div>
+
+            <div class="character-panel">
+                <div class="character-frame">
+                    <div class="character-avatar" id="characterAvatar">🧙‍♂️</div>
+                    <div class="character-level-ring"><span id="levelValue">1</span></div>
+                </div>
+                <div class="character-name" id="characterName">Adventurer</div>
+                <div class="character-bubble" id="characterBubble"></div>
+            </div>
+
+            <div class="companion-container" id="companionContainer">
+                <div class="companion-avatar" id="companionAvatar">🐱</div>
+                <div class="companion-bubble" id="companionBubble"></div>
+            </div>
+
+            <div class="stats-panel">
+                <div class="stat-row">
+                    <span class="stat-label">Level</span>
+                    <span class="stat-value" id="sidebarLevel">1</span>
+                </div>
+                <div class="xp-container">
+                    <div class="xp-bar-outer">
+                        <div class="xp-bar-inner" id="xpBar"></div>
+                        <span class="xp-text" id="xpText">0 / 100 XP</span>
+                    </div>
+                </div>
+                <div class="stat-row" id="streakRow" style="display: none;">
+                    <span class="stat-label">Streak</span>
+                    <span class="stat-value streak-value">
+                        <span class="streak-flame">🔥</span>
+                        <span id="streakValue">0</span> days
+                    </span>
+                </div>
+            </div>
+
+            <div class="buffs-panel" id="buffsPanel">
+                <div class="panel-title">✨ Active Buffs</div>
+                <div class="buffs-list" id="buffsList">
+                    <div class="buff-item empty">No active buffs</div>
+                </div>
+            </div>
+
+            <div class="calendar-widget" id="calendarWidget">
+                <div class="panel-title">📅 Upcoming</div>
+                <div class="calendar-list" id="calendarList">
+                    <div class="calendar-empty">No deadlines set</div>
+                </div>
+            </div>
+
+            <div class="sidebar-actions">
+                <button class="sidebar-btn" id="inventoryBtn" title="Inventory & Achievements">
+                    <span class="btn-icon">🎒</span>
+                    <span class="btn-label">Inventory</span>
+                </button>
+                <button class="sidebar-btn secondary" id="partyBtn" title="Party & Leaderboard">
+                    <span class="btn-icon">🤝</span>
+                    <span class="btn-label">Party</span>
+                </button>
+                <button class="sidebar-btn secondary" id="suggestionsBtn" title="Smart Suggestions">
+                    <span class="btn-icon">💡</span>
+                    <span class="btn-label">Suggestions</span>
+                </button>
+                <button class="sidebar-btn secondary" id="settingsBtn" title="Personalize">
+                    <span class="btn-icon">⚙️</span>
+                    <span class="btn-label">Customize</span>
+                </button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <div class="seasonal-banner" id="seasonalBanner" style="display:none"></div>
+
+            <header class="board-header">
+                <div class="board-title">
+                    <span class="board-icon">📜</span>
+                    <h1>Quest Board</h1>
+                    <span class="board-icon">⚔️</span>
+                </div>
+                <p class="board-subtitle">What quests await today?</p>
+                <div class="ornate-divider">✦ ✦ ✦</div>
+            </header>
+
+            <div class="category-tabs">
+                <button class="tab-btn active" data-category="all">
+                    <span class="tab-icon">📋</span> All
+                </button>
+                <button class="tab-btn" data-category="daily">
+                    <span class="tab-icon">📅</span> Daily
+                </button>
+                <button class="tab-btn" data-category="weekly">
+                    <span class="tab-icon">📆</span> Weekly
+                </button>
+                <button class="tab-btn" data-category="side">
+                    <span class="tab-icon">🗡️</span> Side
+                </button>
+                <button class="tab-btn" data-category="main">
+                    <span class="tab-icon">👑</span> Main
+                </button>
+            </div>
+
+            <div class="quest-board" id="questBoard">
+                <div class="empty-state">
+                    <div class="icon">📜</div>
+                    <p>No quests found.</p>
+                    <p style="font-size:0.9rem;margin-top:8px">Click + to add one!</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- FAB -->
+    <button class="fab" id="addQuestBtn">
+        <span>＋</span>
+        <span class="fab-label">New Quest</span>
+    </button>
+
+    <!-- Quest Modal -->
+    <div class="modal-overlay" id="questModal">
+        <div class="modal parchment-modal">
+            <div class="modal-ornament top">⚔️ 🛡️ ⚔️</div>
+            <h2 id="modalTitle">Post New Quest</h2>
+            <form id="questForm">
+                <input type="hidden" id="questId">
+                <div class="form-group">
+                    <label for="questTitle">Quest Title</label>
+                    <input type="text" id="questTitle" placeholder="Enter quest name..." required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="questCategory">Category</label>
+                        <select id="questCategory">
+                            <option value="daily">Daily</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="side">Side</option>
+                            <option value="main">Main</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="questDifficulty">Difficulty</label>
+                        <select id="questDifficulty">
+                            <option value="easy">Easy ⭐</option>
+                            <option value="medium">Medium ⭐⭐</option>
+                            <option value="hard">Hard ⭐⭐⭐</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="questDueDate">Due Date (optional)</label>
+                        <input type="date" id="questDueDate">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="questDescription">Description (optional)</label>
+                    <textarea id="questDescription" rows="2" placeholder="Add details..."></textarea>
+                </div>
+                <div class="xp-preview" id="xpPreview">
+                    <span class="reward-icon">🏆</span> Reward: 10 XP
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" id="cancelBtn">Cancel</button>
+                    <button type="submit" class="btn-primary">Post Quest</button>
+                </div>
+            </form>
+            <div class="modal-ornament bottom">🛡️ ⚔️ 🛡️</div>
+        </div>
+    </div>
+
+    <!-- Inventory & Achievements Panel -->
+    <div class="panel-overlay" id="panelOverlay">
+        <div class="panel wood-panel">
+            <div class="panel-ornament">🎒 🏆 🎒</div>
+            <div class="panel-header">
+                <h2>Inventory & Achievements</h2>
+                <button class="panel-close" id="panelClose">✕</button>
+            </div>
+            <div class="panel-tabs">
+                <button class="panel-tab active" data-panel="inventory">
+                    <span>🎒</span> Inventory
+                </button>
+                <button class="panel-tab" data-panel="achievements">
+                    <span>🏆</span> Achievements
+                </button>
+            </div>
+            <div class="panel-content" id="inventoryPanel">
+                <div class="inventory-grid" id="inventoryGrid">
+                    <div class="inventory-empty">Your satchel is empty.<br>Complete quests to find treasures!</div>
+                </div>
+            </div>
+            <div class="panel-content hidden" id="achievementsPanel">
+                <div class="achievements-grid" id="achievementsGrid"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Panel -->
+    <div class="panel-overlay" id="settingsOverlay">
+        <div class="panel wood-panel">
+            <div class="panel-ornament">⚙️ 🎨 ⚙️</div>
+            <div class="panel-header">
+                <h2>Personalize</h2>
+                <button class="panel-close" id="settingsClose">✕</button>
+            </div>
+            <div class="panel-tabs">
+                <button class="panel-tab active" data-settings="appearance">
+                    <span>🎨</span> Appearance
+                </button>
+                <button class="panel-tab" data-settings="general">
+                    <span>👤</span> General
+                </button>
+                <button class="panel-tab" data-settings="ai">
+                    <span>🤖</span> AI
+                </button>
+            </div>
+            <div class="panel-content" id="appearancePanel">
+                <div class="settings-section">
+                    <h3>Character</h3>
+                    <div class="avatar-grid" id="avatarGrid"></div>
+                </div>
+                <div class="settings-section">
+                    <h3>Theme</h3>
+                    <div class="theme-grid" id="themeGrid"></div>
+                </div>
+                <div class="settings-section">
+                    <h3>Decorations</h3>
+                    <div class="decor-grid" id="decorGrid"></div>
+                </div>
+                <div class="settings-section">
+                    <h3>Companion</h3>
+                    <div class="companion-grid" id="companionGrid"></div>
+                </div>
+            </div>
+            <div class="panel-content hidden" id="generalPanel">
+                <div class="settings-section">
+                    <h3>Adventurer Name</h3>
+                    <input type="text" class="settings-input" id="playerNameInput" placeholder="Your name...">
+                </div>
+            </div>
+            <div class="panel-content hidden" id="aiSettingsPanel"></div>
+        </div>
+    </div>
+
+    <!-- Party Panel -->
+    <div class="panel-overlay" id="partyOverlay">
+        <div class="panel wood-panel">
+            <div class="panel-ornament">🤝 🏆 🤝</div>
+            <div class="panel-header">
+                <h2>Party & Leaderboard</h2>
+                <button class="panel-close" id="partyClose">✕</button>
+            </div>
+            <div class="panel-tabs">
+                <button class="panel-tab active" data-party="party">
+                    <span>🤝</span> Party
+                </button>
+                <button class="panel-tab" data-party="leaderboard">
+                    <span>🏆</span> Leaderboard
+                </button>
+                <button class="panel-tab" data-party="quests">
+                    <span>📜</span> Party Quests
+                </button>
+            </div>
+            <div class="panel-content" id="partyPanel"></div>
+            <div class="panel-content hidden" id="leaderboardPanel"></div>
+            <div class="panel-content hidden" id="partyQuestsPanel"></div>
+        </div>
+    </div>
+
+    <!-- Suggestions Panel -->
+    <div class="panel-overlay" id="suggestionsOverlay">
+        <div class="panel wood-panel suggestions-panel">
+            <div class="panel-ornament">💡 🤖 💡</div>
+            <div class="panel-header">
+                <h2>Smart Suggestions</h2>
+                <button class="panel-close" id="suggestionsClose">✕</button>
+            </div>
+            <div class="panel-content suggestions-content" id="suggestionsContent">
+                <div class="ai-insights" id="aiInsights"></div>
+                <div class="mood-bar" id="moodBar"></div>
+                <div class="suggestions-list-panel" id="suggestionsListPanel"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Level Up Overlay -->
+    <div class="levelup-overlay" id="levelupOverlay">
+        <div class="levelup-content">
+            <div class="levelup-ornament">✦ ✦ ✦</div>
+            <div class="levelup-stars">⭐</div>
+            <div class="levelup-title">LEVEL UP!</div>
+            <div class="levelup-level" id="levelupLevel">1</div>
+            <div class="levelup-ornament">✦ ✦ ✦</div>
+            <div class="levelup-subtitle">Your power grows, adventurer!</div>
+        </div>
+    </div>
+
+    <!-- Item Drop Container -->
+    <div class="item-drop-container" id="itemDropContainer"></div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Confetti Canvas -->
+    <canvas id="confettiCanvas"></canvas>
+
+    <!-- Scripts -->
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/questManager.js"></script>
+    <script src="js/progression.js"></script>
+    <script src="js/inventory.js"></script>
+    <script src="js/settings.js"></script>
+    <script src="js/effects.js"></script>
+    <script src="js/aiService.js"></script>
+    <script src="js/suggestions.js"></script>
+    <script src="js/party.js"></script>
+    <script src="js/seasons.js"></script>
+    <script src="js/events.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
+
