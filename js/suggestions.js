@@ -625,14 +625,22 @@ const Suggestions = {
   // ─── AI-POWERED SUGGESTIONS ───
 
   async generateAISuggestions(qb) {
-    if (AIService && typeof AIService.isAvailable === 'function' && AIService.isAvailable(qb)) {
+    // Check if AI is enabled and available
+    const aiEnabled = qb.settings && qb.settings.aiEnabled;
+    const aiAvailable = AIService && typeof AIService.isAvailable === 'function' && AIService.isAvailable(qb);
+    
+    if (aiEnabled && aiAvailable) {
       try {
         const aiSuggestions = await AIService.generateSuggestions(qb, this.currentMood);
         if (aiSuggestions && aiSuggestions.length > 0) {
+          // Mark suggestions as AI-generated
+          aiSuggestions.forEach(s => { s._aiGenerated = true; });
           return aiSuggestions;
         }
       } catch (err) {
         console.warn('[Suggestions] AI generation failed, falling back to local:', err);
+        // Return error marker so UI can show what happened
+        return { _aiError: true, _errorMessage: err.message, _fallback: this.generateLocalSuggestions(qb) };
       }
     }
     return this.generateLocalSuggestions(qb);
@@ -695,13 +703,31 @@ const Suggestions = {
     const container = document.getElementById('suggestionsListPanel');
     if (!container) return;
 
-    const render = (suggestions) => {
+    const render = (suggestions, isAI, aiErrorMsg) => {
+      // Handle error object
+      if (suggestions && suggestions._aiError) {
+        const fallback = suggestions._fallback || this.generateLocalSuggestions(qb);
+        render(fallback, false, suggestions._errorMessage);
+        return;
+      }
+
       if (!suggestions || suggestions.length === 0) {
         container.innerHTML = '<div class="suggestions-empty">Complete some quests to get personalized suggestions!</div>';
         return;
       }
 
-      container.innerHTML = suggestions.map(s => {
+      let html = '';
+
+      // Show AI status banner
+      if (isAI) {
+        html += `<div class="ai-status-banner ai-success">🤖 AI-generated suggestions based on your quest history</div>`;
+      } else if (aiErrorMsg) {
+        html += `<div class="ai-status-banner ai-error">⚠️ AI unavailable: ${esc(aiErrorMsg)}. Using local suggestions.</div>`;
+      } else if (qb.settings && qb.settings.aiEnabled) {
+        html += `<div class="ai-status-banner ai-local">📋 Using local suggestions (AI fallback)</div>`;
+      }
+
+      html += suggestions.map(s => {
         const xp = Math.floor(XP_REWARDS[s.category] * (DIFFICULTY_MULTIPLIERS[s.difficulty] || 1));
         const icons = {
           streak: '🔥', overdue: '⏰', time: '🕐', balance: '⚖️',
@@ -710,12 +736,14 @@ const Suggestions = {
           wellness: '🌿', social: '👥', routine: '📅'
         };
         const icon = icons[s.reason] || '💡';
+        const aiBadge = s._aiGenerated ? '<span class="ai-badge">🤖 AI</span>' : '';
         return `<div class="suggestion-card-panel ${s.reason} ${s.isPriority ? 'priority' : ''}">
           <div class="suggestion-card-header">
             <div class="suggestion-card-icon">${icon}</div>
             <div class="suggestion-card-meta">
               <span class="suggestion-badge">${s.category}</span>
               <span class="suggestion-badge">${s.difficulty}</span>
+              ${aiBadge}
             </div>
           </div>
           <div class="suggestion-card-body">
@@ -729,6 +757,8 @@ const Suggestions = {
         </div>`;
       }).join('');
 
+      container.innerHTML = html;
+
       container.querySelectorAll('.suggestion-card-add').forEach(btn => {
         btn.addEventListener('click', e => {
           e.stopPropagation();
@@ -741,9 +771,9 @@ const Suggestions = {
     const result = this.generateAISuggestions(qb);
     if (result && typeof result.then === 'function') {
       container.innerHTML = '<div class="suggestions-empty">🤖 Consulting the AI oracle...</div>';
-      result.then(render).catch(() => render(this.generateLocalSuggestions(qb)));
+      result.then(sugs => render(sugs, true)).catch(err => render(this.generateLocalSuggestions(qb), false, err.message));
     } else {
-      render(result);
+      render(result, false);
     }
   },
 

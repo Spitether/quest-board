@@ -388,6 +388,49 @@
   box-shadow: 0 4px 15px var(--accent-glow);
 }
 
+/* AI Status Banner */
+.ai-status-banner {
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+  text-align: center;
+  animation: slideIn 0.3s ease;
+}
+
+.ai-status-banner.ai-success {
+  background: rgba(124, 179, 66, 0.15);
+  border: 1px solid rgba(124, 179, 66, 0.4);
+  color: var(--success);
+}
+
+.ai-status-banner.ai-error {
+  background: rgba(229, 57, 53, 0.15);
+  border: 1px solid rgba(229, 57, 53, 0.4);
+  color: var(--main);
+}
+
+.ai-status-banner.ai-local {
+  background: rgba(201, 168, 76, 0.1);
+  border: 1px solid var(--gold-dark);
+  color: var(--gold);
+}
+
+/* AI Badge on suggestion cards */
+.ai-badge {
+  font-size: 0.6rem;
+  font-weight: bold;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: rgba(92, 107, 192, 0.2);
+  color: #a78bfa;
+  border: 1px solid rgba(167, 139, 250, 0.3);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-left: 4px;
+}
+
 /* Responsive */
 @media (max-width: 600px) {
   .suggestions-content { padding: 14px; gap: 12px; }
